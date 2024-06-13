@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
 
-dotenv.config({ path: '.env' });
+dotenv.config({path: '.env'});
 
 const privateKey = fs.readFileSync(process.env.DOMAIN_PRIVATE_KEY);
 const certificate = fs.readFileSync(process.env.DOMAIN_CERTIFICATE);
