@@ -38,6 +38,8 @@ const sendMessage = async (threadId, payload) => {
 }
 
 wss.on('connection', function connection(ws) {
+    console.log('Connected on port 9010')
+
     ws.on('message', async function message(data) {
         try {
             const message = JSON.parse(data);
