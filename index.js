@@ -1,9 +1,28 @@
 import {WebSocketServer} from 'ws';
+import dotenv from 'dotenv';
+import https from 'https';
+import fs from 'fs';
 
-const wss = new WebSocketServer({port: 9010});
+dotenv.config({ path: '.env' });
+
+const privateKey = fs.readFileSync(process.env.DOMAIN_PRIVATE_KEY);
+const certificate = fs.readFileSync(process.env.DOMAIN_CERTIFICATE);
+
+const credentials = {
+    key: privateKey,
+    cert: certificate
+};
+
+const API_URL = process.env.OPENAI_API_URL
+const PORT = process.env.SERVICE_PORT;
+
+const httpsServer = https.createServer(credentials);
+httpsServer.listen(PORT);
+
+const wss = new WebSocketServer({server: httpsServer});
 
 const createThread = async () => {
-    return fetch("https://openai.livvy.digitalpandas.io/threads/create")
+    return fetch(`${API_URL}/threads/create`)
         .then((response) => {
             return response.json().then((res) => {
                 const message = res.message;
@@ -17,7 +36,7 @@ const createThread = async () => {
 }
 
 const sendMessage = async (threadId, payload) => {
-    return fetch(`https://openai.livvy.digitalpandas.io/threads/${threadId}/messages/create`, {
+    return fetch(`${API_URL}/threads/${threadId}/messages/create`, {
         method: "POST",
         body: JSON.stringify({
             message: payload
@@ -37,9 +56,9 @@ const sendMessage = async (threadId, payload) => {
     });
 }
 
-wss.on('connection', function connection(ws) {
-    console.log('Connected on port 9010')
+wss.on('listening', () => console.log(`WebSocket server is running on port ${PORT}`));
 
+wss.on('connection', function connection(ws) {
     ws.on('message', async function message(data) {
         try {
             const message = JSON.parse(data);
